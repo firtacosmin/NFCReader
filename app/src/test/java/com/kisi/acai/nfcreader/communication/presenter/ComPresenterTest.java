@@ -1,28 +1,47 @@
 package com.kisi.acai.nfcreader.communication.presenter;
 
+import android.content.Intent;
+import android.nfc.NdefMessage;
+import android.nfc.NdefRecord;
+import android.nfc.NfcAdapter;
+import android.nfc.Tag;
+import android.nfc.tech.Ndef;
 import android.os.Bundle;
-import android.os.Handler;
 
 import com.kisi.acai.nfcreader.communication.model.ComModel;
 import com.kisi.acai.nfcreader.communication.view.ComView;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 /**
  * Created by firta on 7/12/2017.
  *
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(Ndef.class)
 public class ComPresenterTest {
 
 
     private ComPresenter presenter;
     private ComModel model;
     private ComView view;
+    private Intent intent;
+    private Tag tag;
+    private Ndef ndef;
+    private NdefMessage ndefMessage;
+    private NdefRecord ndefRecord;
+    private byte[] nothingBytes;
+    private byte[] unlockBytes;
 
     /**
      *
@@ -56,6 +75,15 @@ public class ComPresenterTest {
 
         model = Mockito.mock(ComModel.class);
         view = Mockito.mock(ComView.class);
+
+        intent = Mockito.mock(Intent.class);
+        tag = Mockito.mock(Tag.class);
+        ndef = Mockito.mock(Ndef.class);
+        ndefMessage = Mockito.mock(NdefMessage.class);
+        ndefRecord = Mockito.mock(NdefRecord.class);
+
+        nothingBytes = "nothing".getBytes();
+        unlockBytes = "unlock".getBytes();
 
         presenter = new ComPresenter(model, view);
 
@@ -94,4 +122,37 @@ public class ComPresenterTest {
         Mockito.verify(view).showHome();
 
     }
+
+
+    @Test
+    public void receivedIntentWithNothing() throws Exception{
+        PowerMockito.mockStatic(Ndef.class);
+        when(intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)).thenReturn(tag);
+        when(Ndef.get((Tag) any())).thenReturn(ndef);
+        when(ndef.getCachedNdefMessage()).thenReturn(ndefMessage);
+        when(ndefMessage.getRecords()).thenReturn(new NdefRecord[]{ndefRecord});
+        when(ndefRecord.getPayload()).thenReturn(nothingBytes);
+
+        presenter.processViewIntent(intent);
+        Mockito.verify(view, never()).showUser(model.getUser());
+
+    }
+
+    @Test
+    public void receivedIntentWithUnlock() throws Exception{
+        PowerMockito.mockStatic(Ndef.class);
+        when(intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)).thenReturn(tag);
+        when(Ndef.get((Tag) any())).thenReturn(ndef);
+        when(ndef.getCachedNdefMessage()).thenReturn(ndefMessage);
+        when(ndefMessage.getRecords()).thenReturn(new NdefRecord[]{ndefRecord});
+        when(ndefRecord.getPayload()).thenReturn(unlockBytes);
+
+        presenter.processViewIntent(intent);
+        Mockito.verify(view).showUnlockAnimation();
+        Mockito.verify(view).showUser(model.getUser());
+
+    }
+
+
+
 }
