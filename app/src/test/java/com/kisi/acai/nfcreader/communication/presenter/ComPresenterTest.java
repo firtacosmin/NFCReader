@@ -7,6 +7,7 @@ import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.tech.Ndef;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.kisi.acai.nfcreader.communication.model.ComModel;
 import com.kisi.acai.nfcreader.communication.view.ComView;
@@ -28,7 +29,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
  *
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(Ndef.class)
+@PrepareForTest({Ndef.class, Log.class})
 public class ComPresenterTest {
 
 
@@ -94,6 +95,7 @@ public class ComPresenterTest {
     @Test
     public void newAppStart_PrintSplash() throws Exception {
 
+        PowerMockito.mockStatic(Log.class);
         presenter.activityCreated(null);
         presenter.activityResumed();
         Mockito.verify(view).showSplashScreen();
@@ -104,6 +106,7 @@ public class ComPresenterTest {
 
     @Test
     public void appInBackground_PrintSplash() throws Exception {
+        PowerMockito.mockStatic(Log.class);
         presenter.activityPaused();
         presenter.activityResumed();
         Mockito.verify(view).showSplashScreen();
@@ -115,6 +118,7 @@ public class ComPresenterTest {
     @Test
     public void deviceRotates_PrintSplash() throws Exception {
 
+        PowerMockito.mockStatic(Log.class);
         presenter.activityPaused();
         presenter.activityCreated(new Bundle());
         presenter.activityResumed();
@@ -126,12 +130,8 @@ public class ComPresenterTest {
 
     @Test
     public void receivedIntentWithNothing() throws Exception{
-        PowerMockito.mockStatic(Ndef.class);
-        when(intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)).thenReturn(tag);
-        when(Ndef.get((Tag) any())).thenReturn(ndef);
-        when(ndef.getCachedNdefMessage()).thenReturn(ndefMessage);
-        when(ndefMessage.getRecords()).thenReturn(new NdefRecord[]{ndefRecord});
-        when(ndefRecord.getPayload()).thenReturn(nothingBytes);
+
+        mockForIntent(nothingBytes);
 
         presenter.processViewIntent(intent);
         Mockito.verify(view, never()).showUser(model.getUser());
@@ -140,18 +140,54 @@ public class ComPresenterTest {
 
     @Test
     public void receivedIntentWithUnlock() throws Exception{
-        PowerMockito.mockStatic(Ndef.class);
-        when(intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)).thenReturn(tag);
-        when(Ndef.get((Tag) any())).thenReturn(ndef);
-        when(ndef.getCachedNdefMessage()).thenReturn(ndefMessage);
-        when(ndefMessage.getRecords()).thenReturn(new NdefRecord[]{ndefRecord});
-        when(ndefRecord.getPayload()).thenReturn(unlockBytes);
+        mockForIntent(unlockBytes);
 
         presenter.processViewIntent(intent);
         Mockito.verify(view).showUnlockAnimation();
         Mockito.verify(view).showUser(model.getUser());
 
     }
+
+    @Test
+    public void receiveNothingIntentWhileUserUnlocked() throws  Exception{
+        mockForIntent(nothingBytes);
+        presenter.setUnlocked();
+//        when(presenter.isUnlocked()).thenReturn(true);
+        presenter.processViewIntent(intent);
+        Mockito.verify(view, never()).showSplashScreen();
+        Mockito.verify(view, never()).showHome();
+        Mockito.verify(view, never()).showUser((ComModel.User) any());
+        Mockito.verify(view, never()).showUnlockAnimation();
+
+    }
+
+    @Test
+    public void receiveUnlockIntentWhileUserUnlocked() throws  Exception{
+        mockForIntent(unlockBytes);
+        presenter.setUnlocked();
+//        when(presenter.isUnlocked()).thenReturn(true);
+        presenter.processViewIntent(intent);
+        Mockito.verify(view, never()).showSplashScreen();
+        Mockito.verify(view, never()).showHome();
+        Mockito.verify(view, never()).showUser((ComModel.User) any());
+        Mockito.verify(view, never()).showUnlockAnimation();
+
+    }
+
+
+    private void mockForIntent(byte[] message){
+        PowerMockito.mockStatic(Ndef.class);
+        PowerMockito.mockStatic(Log.class);
+        when(intent.getAction()).thenReturn(NfcAdapter.ACTION_NDEF_DISCOVERED);
+        when(intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)).thenReturn(tag);
+        when(Ndef.get((Tag) any())).thenReturn(ndef);
+        when(Log.d(any(String.class), any(String.class))).thenReturn(0);
+        when(ndef.getCachedNdefMessage()).thenReturn(ndefMessage);
+        when(ndefMessage.getRecords()).thenReturn(new NdefRecord[]{ndefRecord});
+        when(ndefRecord.getPayload()).thenReturn(message);
+    }
+
+
 
 
 
