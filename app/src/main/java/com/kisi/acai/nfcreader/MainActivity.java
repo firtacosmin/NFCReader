@@ -22,17 +22,28 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.kisi.acai.nfcreader.communication.presenter.ComPresenter;
+import com.kisi.acai.nfcreader.communication.view.ComView;
 import com.kisi.acai.nfcreader.databinding.ActivityMainBinding;
+import com.kisi.acai.nfcreader.di.activity.ActivityComponent;
+import com.kisi.acai.nfcreader.di.activity.DaggerActivityComponent;
+import com.kisi.acai.nfcreader.di.activity.modules.ComViewModule;
+import com.kisi.acai.nfcreader.di.activity.modules.ContextModule;
 
 import java.io.UnsupportedEncodingException;
 
+import javax.inject.Inject;
+
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, ComView {
 
 
     private static final String TAG = "MainActivity";
     private ActivityMainBinding binding;
+    private ActivityComponent component;
+    @Inject
+    public ComPresenter presenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,14 +51,13 @@ public class MainActivity extends AppCompatActivity
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
         setSupportActionBar(binding.appBarMain.toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+
+        component = DaggerActivityComponent.builder()
+                .contextModule(new ContextModule(this))
+                .comViewModule(new ComViewModule(this))
+                .build();
+        component.bind(this);
+
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, binding.drawerLayout, binding.appBarMain.toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
