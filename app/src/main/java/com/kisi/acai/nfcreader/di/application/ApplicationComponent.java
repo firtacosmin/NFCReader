@@ -1,6 +1,9 @@
 package com.kisi.acai.nfcreader.di.application;
 
+import com.kisi.acai.nfcreader.communication.model.ComEndpointInterface;
+import com.kisi.acai.nfcreader.communication.model.ComModel;
 import com.kisi.acai.nfcreader.di.application.modules.ComModelModule;
+import com.kisi.acai.nfcreader.di.application.modules.NetworkModule;
 
 import dagger.Component;
 import dagger.Module;
@@ -10,6 +13,10 @@ import dagger.Module;
  */
 
 @ApplicationScope
-@Component(modules = {ComModelModule.class})
+@Component(modules = {ComModelModule.class, NetworkModule.class})
 public interface ApplicationComponent {
+
+    ComEndpointInterface comEndPointInterface();
+    ComModel comModel();
+
 }

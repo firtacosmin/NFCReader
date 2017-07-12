@@ -26,6 +26,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.kisi.acai.nfcreader.communication.model.ComEndpointInterface;
 import com.kisi.acai.nfcreader.communication.model.ComModel;
 import com.kisi.acai.nfcreader.communication.presenter.ComPresenter;
 import com.kisi.acai.nfcreader.communication.view.ComView;
@@ -34,6 +35,7 @@ import com.kisi.acai.nfcreader.di.activity.ActivityComponent;
 import com.kisi.acai.nfcreader.di.activity.DaggerActivityComponent;
 import com.kisi.acai.nfcreader.di.activity.modules.ComViewModule;
 import com.kisi.acai.nfcreader.di.activity.modules.ContextModule;
+import com.kisi.acai.nfcreader.di.application.ApplicationScope;
 import com.kisi.acai.nfcreader.util.GifImageView;
 
 import org.w3c.dom.Text;
@@ -44,6 +46,8 @@ import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Retrofit;
 
 
 public class MainActivity extends AppCompatActivity
@@ -72,6 +76,10 @@ public class MainActivity extends AppCompatActivity
 
     private Handler delayHandler;
 
+//    @Inject
+//    @ApplicationScope
+//    HttpLoggingInterceptor comEndpointInterface;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,9 +89,9 @@ public class MainActivity extends AppCompatActivity
 
         setSupportActionBar(binding.appBarMain.toolbar);
         component = DaggerActivityComponent.builder()
+                .applicationComponent(((MainApp)getApplication()).getComponent())
                 .contextModule(new ContextModule(this))
                 .comViewModule(new ComViewModule(this))
-                .applicationComponent(((MainApp)getApplication()).getComponent())
                 .build();
         component.bind(this);
 

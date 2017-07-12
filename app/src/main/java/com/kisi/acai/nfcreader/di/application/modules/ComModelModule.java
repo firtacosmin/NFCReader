@@ -1,5 +1,6 @@
 package com.kisi.acai.nfcreader.di.application.modules;
 
+import com.kisi.acai.nfcreader.communication.model.ComEndpointInterface;
 import com.kisi.acai.nfcreader.communication.model.ComModel;
 import com.kisi.acai.nfcreader.di.activity.ActivityScope;
 import com.kisi.acai.nfcreader.di.application.ApplicationScope;
@@ -16,7 +17,7 @@ public class ComModelModule {
 
     @Provides
     @ApplicationScope
-    public ComModel provideModel(){
-        return new ComModel();
+    public ComModel provideModel(ComEndpointInterface api){
+        return new ComModel(api);
     }
 }

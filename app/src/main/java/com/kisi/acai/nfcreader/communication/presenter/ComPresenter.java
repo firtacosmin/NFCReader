@@ -13,6 +13,7 @@ import android.os.Parcelable;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.kisi.acai.nfcreader.communication.model.ComEndpointInterface;
 import com.kisi.acai.nfcreader.communication.model.ComModel;
 import com.kisi.acai.nfcreader.communication.view.ComView;
 import com.kisi.acai.nfcreader.di.activity.ActivityScope;
@@ -33,6 +34,7 @@ public class ComPresenter {
     private static final String TAG = "ComPresenter";
     private final ComModel model;
     private final ComView view;
+    private ComEndpointInterface endPoint;
 
     /**
      * the payload to search for
@@ -59,9 +61,7 @@ public class ComPresenter {
 
         this.model = model;
         this.view = view;
-
-
-
+        this.endPoint = endPoint;
     }
 
     public void activityResumed(){
@@ -185,6 +185,7 @@ public class ComPresenter {
             view.showUser(model.getUser());
             setUnlocked();
         }
+        model.announceUnlockToServer();
 
 
     }

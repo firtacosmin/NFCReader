@@ -9,6 +9,7 @@ import android.nfc.tech.Ndef;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.kisi.acai.nfcreader.communication.model.ComEndpointInterface;
 import com.kisi.acai.nfcreader.communication.model.ComModel;
 import com.kisi.acai.nfcreader.communication.view.ComView;
 
