@@ -67,7 +67,32 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+
+        presenter.activityCreated(savedInstanceState);
     }
+
+
+
+    public void onResume(){
+        super.onResume();
+
+        presenter.activityResumed();
+
+    }
+
+    public void onPause(){
+        super.onPause();
+
+        presenter.activityPaused();
+    }
+
+    public void onSaveInstanceState(Bundle state){
+        super.onSaveInstanceState(state);
+
+        presenter.activitySaveInstanceState(state);
+    }
+
 
     @Override
     public void onBackPressed() {

@@ -44,6 +44,10 @@ public class ComPresenter {
 
     }
 
+    public void activityCreated(Bundle savedInstanceState){
+
+    }
+
 
 
 
