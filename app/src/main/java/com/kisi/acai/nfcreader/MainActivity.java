@@ -7,8 +7,12 @@ import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.tech.Ndef;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.os.Parcelable;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -20,6 +24,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.kisi.acai.nfcreader.communication.presenter.ComPresenter;
@@ -34,9 +39,16 @@ import java.io.UnsupportedEncodingException;
 
 import javax.inject.Inject;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, ComView {
+
+
+    private static final int STOP_SPLASH = 1;
+    public static final long SPLASH_DELAY = 1000;
 
 
     private static final String TAG = "MainActivity";
@@ -45,13 +57,22 @@ public class MainActivity extends AppCompatActivity
     @Inject
     public ComPresenter presenter;
 
+    @BindView(R.id.mainLayout)
+    ConstraintLayout mainLayout;
+    @BindView(R.id.mainText)
+    TextView mainText;
+
+
+    private Handler delayHandler;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        ButterKnife.bind(this);
+
         setSupportActionBar(binding.appBarMain.toolbar);
-
-
         component = DaggerActivityComponent.builder()
                 .contextModule(new ContextModule(this))
                 .comViewModule(new ComViewModule(this))
@@ -68,6 +89,15 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+
+        delayHandler = new Handler(){
+            @Override
+            public void handleMessage(Message msg) {
+                if ( msg.what == STOP_SPLASH ){
+                    presenter.splashFinished();
+                }
+            }
+        };
 
         presenter.activityCreated(savedInstanceState);
     }
@@ -214,5 +244,26 @@ public class MainActivity extends AppCompatActivity
         // Get the Text
         Log.d(TAG,"::other option: "+new String(payload, 0, payload.length  - 1, textEncoding));
         return new String(payload, 0, payload.length - 1, textEncoding);
+    }
+
+    @Override
+    public void showSplashScreen() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            mainLayout.setBackgroundColor(getResources().getColor(R.color.splashScreenColor, getTheme()));
+        }else{
+            mainLayout.setBackgroundColor(getResources().getColor(R.color.splashScreenColor));
+        }
+        mainText.setVisibility(View.INVISIBLE);
+        delayHandler.sendMessageDelayed(delayHandler.obtainMessage(STOP_SPLASH), SPLASH_DELAY);
+    }
+
+    @Override
+    public void showHome() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            mainLayout.setBackgroundColor(getResources().getColor(R.color.white, getTheme()));
+        }else{
+            mainLayout.setBackgroundColor(getResources().getColor(R.color.white));
+        }
+        mainText.setVisibility(View.VISIBLE);
     }
 }

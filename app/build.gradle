@@ -60,7 +60,10 @@ dependencies {
     compile "io.reactivex:rxandroid:$rxAndroidVersion"
     compile "io.reactivex:rxjava:$rxJavaVersion"
     provided "com.google.dagger:dagger-compiler:$daggerVersion"
-
     provided 'javax.annotation:jsr250-api:1.0'
+
+
+    compile "com.jakewharton:butterknife:$butterknifeVersion"
+    provided "com.jakewharton:butterknife-compiler:$butterknifeVersion"
 
 }

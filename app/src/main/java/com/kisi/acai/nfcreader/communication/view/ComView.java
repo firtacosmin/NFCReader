@@ -7,4 +7,7 @@ package com.kisi.acai.nfcreader.communication.view;
  */
 
 public interface ComView {
+    void showSplashScreen();
+
+    void showHome();
 }
