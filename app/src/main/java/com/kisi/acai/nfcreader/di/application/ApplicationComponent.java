@@ -9,5 +9,5 @@ import dagger.Module;
 
 @Component
 @ApplicationScope
-public class ApplicationComponent {
+public interface ApplicationComponent {
 }
