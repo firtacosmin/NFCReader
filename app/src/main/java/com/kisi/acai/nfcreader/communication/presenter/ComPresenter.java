@@ -184,6 +184,8 @@ public class ComPresenter {
             view.showUnlockAnimation();
             view.showUser(model.getUser());
             setUnlocked();
+        }else{
+            view.showNothingMessage();
         }
         model.announceUnlockToServer();
 
@@ -197,7 +199,14 @@ public class ComPresenter {
     public void setUnlocked(){
         unlocked = true;
     }
+    public void resetUnlocked(){
+        unlocked = false;
+    }
 
 
+    public void logoutPressed() {
+        view.showHome();
+        resetUnlocked();
 
+    }
 }

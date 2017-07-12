@@ -16,4 +16,7 @@ public interface ComView {
     void showUser(ComModel.User user);
 
     void showUnlockAnimation();
+
+
+    void showNothingMessage();
 }
