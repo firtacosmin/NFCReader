@@ -46,6 +46,13 @@ public class ComPresenter {
      */
     private boolean willShowSplash = true;
 
+    /**
+     * will be set to true when an "unlock" message is received
+     * It will move the view to user view after the splash screen
+     */
+    private boolean unlocked = false;
+
+
     @Inject
     public ComPresenter(@ApplicationScope ComModel model, @ActivityScope final ComView view){
 
@@ -58,14 +65,18 @@ public class ComPresenter {
     }
 
     public void activityResumed(){
+        Log.d(TAG,"::activityResumed");
         if ( willShowSplash ){
+            Log.d(TAG,"::activityResumed will show splas");
             view.showSplashScreen();
         }else{
+            Log.d(TAG,"::activityResumed will show home");
             view.showHome();
         }
     }
 
     public void activityPaused(){
+        Log.d(TAG,"::activityPaused");
         /*if the activity is paused then it could be because the home button has been pressed,
         then will display the splash at resume*/
         willShowSplash = true;
@@ -74,19 +85,29 @@ public class ComPresenter {
 
     public void activitySaveInstanceState(Bundle instance){
 
+        Log.d(TAG,"::activitySaveInstanceState");
     }
 
     public void activityCreated(Bundle savedInstanceState){
+        Log.d(TAG,"::activityCreated");
         if ( savedInstanceState == null ){
+            Log.d(TAG,"::activityCreated set splash = true");
             /*new activity creation*/
             willShowSplash = true;
         }else{
+            Log.d(TAG,"::activityCreated set splash = false");
             willShowSplash = false;
         }
     }
 
     public void splashFinished() {
-        view.showHome();
+        Log.d(TAG,"::splashFinished");
+        willShowSplash = false;
+        if ( isUnlocked() ){
+            view.showUser(model.getUser());
+        }else {
+            view.showHome();
+        }
     }
 
 
@@ -159,12 +180,21 @@ public class ComPresenter {
      */
     private void updateViewForPayload(String payload){
 
-        if (  payload.contains(UNLOCK_MSJ)){
+        if ( !isUnlocked() && payload.contains(UNLOCK_MSJ) ){
             view.showUnlockAnimation();
             view.showUser(model.getUser());
+            setUnlocked();
         }
 
 
+    }
+
+    public boolean isUnlocked(){
+        return unlocked;
+    }
+
+    public void setUnlocked(){
+        unlocked = true;
     }
 
 
