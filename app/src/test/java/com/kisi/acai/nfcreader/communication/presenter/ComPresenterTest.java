@@ -13,6 +13,7 @@ import com.kisi.acai.nfcreader.communication.model.ComEndpointInterface;
 import com.kisi.acai.nfcreader.communication.model.ComModel;
 import com.kisi.acai.nfcreader.communication.view.ComView;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,6 +68,10 @@ public class ComPresenterTest {
      * 7. when app starts with saved instance state while not showing user info
      *          -> do not show loading screen
      *          -> show the user info
+     *
+     * 8. logout button is pressed
+     *          -> will display home message
+     *          -> will wait for unlock nFC message
      *
      *
      *
@@ -136,6 +141,7 @@ public class ComPresenterTest {
 
         presenter.processViewIntent(intent);
         Mockito.verify(view, never()).showUser(model.getUser());
+        Mockito.verify(view).showNothingMessage();
 
     }
 
@@ -159,6 +165,7 @@ public class ComPresenterTest {
         Mockito.verify(view, never()).showHome();
         Mockito.verify(view, never()).showUser((ComModel.User) any());
         Mockito.verify(view, never()).showUnlockAnimation();
+        Mockito.verify(view).showNothingMessage();
 
     }
 
@@ -176,6 +183,14 @@ public class ComPresenterTest {
     }
 
 
+    @Test
+    public void logoutPressed() throws Exception{
+        presenter.logoutPressed();
+        Mockito.verify(view).showHome();
+        Assert.assertFalse(presenter.isUnlocked());
+    }
+
+
     private void mockForIntent(byte[] message){
         PowerMockito.mockStatic(Ndef.class);
         PowerMockito.mockStatic(Log.class);
@@ -187,6 +202,9 @@ public class ComPresenterTest {
         when(ndefMessage.getRecords()).thenReturn(new NdefRecord[]{ndefRecord});
         when(ndefRecord.getPayload()).thenReturn(message);
     }
+
+
+
 
 
 

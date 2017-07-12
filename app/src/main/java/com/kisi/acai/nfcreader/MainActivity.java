@@ -15,6 +15,7 @@ import android.os.Message;
 import android.os.Parcelable;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -23,6 +24,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,12 +49,13 @@ import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, ComView, GifImageView.AnimationEndListener {
+        implements NavigationView.OnNavigationItemSelectedListener, ComView, GifImageView.AnimationEndListener, View.OnClickListener {
 
 
     private static final int STOP_SPLASH = 1;
@@ -118,6 +121,7 @@ public class MainActivity extends AppCompatActivity
 
         username = (TextView)header.findViewById(R.id.username);
         email = (TextView)header.findViewById(R.id.email);
+        ((Button)header.findViewById(R.id.logoutBtn)).setOnClickListener(this);
 
         delayHandler = new TimingHandler();
         delayHandler.setActivity(this);
@@ -213,6 +217,7 @@ public class MainActivity extends AppCompatActivity
     public void showHome() {
         Log.d(TAG,"::showHome");
         hideSplash();
+        hideGif();
         mainText.setVisibility(View.VISIBLE);
         binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
@@ -233,9 +238,16 @@ public class MainActivity extends AppCompatActivity
     public void showUnlockAnimation() {
         hideSplash();
         Log.d(TAG,"::showUnlockAnimation");
+        gifImageView.setVisibility(View.VISIBLE);
+        mainText.setVisibility(View.INVISIBLE);
         gifImageView.setAnimationEndListener(this);
         gifImageView.setStopAtEnd(true);
         gifImageView.setGifImageResource(R.drawable.gif);
+    }
+
+    @Override
+    public void showNothingMessage() {
+        Snackbar.make(mainLayout, "Nothing received", Snackbar.LENGTH_SHORT).show();
     }
 
     @Override
@@ -253,13 +265,27 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+
+    private void hideGif() {
+        gifImageView.setVisibility(View.INVISIBLE);
+    }
     /**
      * methid called by {@link com.kisi.acai.nfcreader.communication.view.TimingHandler} when the time ends
      */
     public void timerTicked() {
 
-
         presenter.splashFinished();
 
+    }
+
+    public void logoutClick(){
+        presenter.logoutPressed();
+    }
+
+    @Override
+    public void onClick(View v) {
+        if ( v.getId() == R.id.logoutBtn ){
+            logoutClick();
+        }
     }
 }
