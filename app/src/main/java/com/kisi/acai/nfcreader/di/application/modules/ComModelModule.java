@@ -1,7 +1,8 @@
-package com.kisi.acai.nfcreader.di.activity.modules;
+package com.kisi.acai.nfcreader.di.application.modules;
 
 import com.kisi.acai.nfcreader.communication.model.ComModel;
 import com.kisi.acai.nfcreader.di.activity.ActivityScope;
+import com.kisi.acai.nfcreader.di.application.ApplicationScope;
 
 import dagger.Module;
 import dagger.Provides;
@@ -14,7 +15,7 @@ import dagger.Provides;
 public class ComModelModule {
 
     @Provides
-    @ActivityScope
+    @ApplicationScope
     public ComModel provideModel(){
         return new ComModel();
     }

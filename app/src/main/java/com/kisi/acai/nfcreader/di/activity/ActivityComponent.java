@@ -3,9 +3,10 @@ package com.kisi.acai.nfcreader.di.activity;
 import android.content.Context;
 
 import com.kisi.acai.nfcreader.MainActivity;
-import com.kisi.acai.nfcreader.di.activity.modules.ComModelModule;
+import com.kisi.acai.nfcreader.di.application.modules.ComModelModule;
 import com.kisi.acai.nfcreader.di.activity.modules.ComViewModule;
 import com.kisi.acai.nfcreader.di.activity.modules.ContextModule;
+import com.kisi.acai.nfcreader.di.application.ApplicationComponent;
 
 import dagger.Component;
 
@@ -14,7 +15,7 @@ import dagger.Component;
  */
 
 @ActivityScope
-@Component (modules={ContextModule.class, ComViewModule.class, ComModelModule.class})
+@Component (modules={ContextModule.class, ComViewModule.class}, dependencies = ApplicationComponent.class)
 public interface ActivityComponent {
 
     Context getContext();

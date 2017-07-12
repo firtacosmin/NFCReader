@@ -55,6 +55,7 @@ public class MainActivity extends AppCompatActivity
         component = DaggerActivityComponent.builder()
                 .contextModule(new ContextModule(this))
                 .comViewModule(new ComViewModule(this))
+                .applicationComponent(((MainApp)getApplication()).getComponent())
                 .build();
         component.bind(this);
 
