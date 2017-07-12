@@ -30,6 +30,7 @@ import com.kisi.acai.nfcreader.communication.model.ComEndpointInterface;
 import com.kisi.acai.nfcreader.communication.model.ComModel;
 import com.kisi.acai.nfcreader.communication.presenter.ComPresenter;
 import com.kisi.acai.nfcreader.communication.view.ComView;
+import com.kisi.acai.nfcreader.communication.view.TimingHandler;
 import com.kisi.acai.nfcreader.databinding.ActivityMainBinding;
 import com.kisi.acai.nfcreader.di.activity.ActivityComponent;
 import com.kisi.acai.nfcreader.di.activity.DaggerActivityComponent;
@@ -74,7 +75,7 @@ public class MainActivity extends AppCompatActivity
     TextView email;
 
 
-    private Handler delayHandler;
+    private TimingHandler delayHandler;
 
 //    @Inject
 //    @ApplicationScope
@@ -118,14 +119,8 @@ public class MainActivity extends AppCompatActivity
         username = (TextView)header.findViewById(R.id.username);
         email = (TextView)header.findViewById(R.id.email);
 
-        delayHandler = new Handler(){
-            @Override
-            public void handleMessage(Message msg) {
-                if ( msg.what == STOP_SPLASH ){
-                    presenter.splashFinished();
-                }
-            }
-        };
+        delayHandler = new TimingHandler();
+        delayHandler.setActivity(this);
 
         presenter.activityCreated(savedInstanceState);
     }
@@ -256,5 +251,15 @@ public class MainActivity extends AppCompatActivity
         }else{
             mainLayout.setBackgroundColor(getResources().getColor(R.color.white));
         }
+    }
+
+    /**
+     * methid called by {@link com.kisi.acai.nfcreader.communication.view.TimingHandler} when the time ends
+     */
+    public void timerTicked() {
+
+
+        presenter.splashFinished();
+
     }
 }
