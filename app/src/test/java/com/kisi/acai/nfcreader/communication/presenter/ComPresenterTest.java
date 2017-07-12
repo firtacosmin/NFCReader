@@ -1,12 +1,17 @@
 package com.kisi.acai.nfcreader.communication.presenter;
 
+import android.os.Bundle;
+import android.os.Handler;
+
 import com.kisi.acai.nfcreader.communication.model.ComModel;
 import com.kisi.acai.nfcreader.communication.view.ComView;
 
 import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mockito;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.never;
 
 /**
  * Created by firta on 7/12/2017.
@@ -54,6 +59,39 @@ public class ComPresenterTest {
 
         presenter = new ComPresenter(model, view);
 
+
+    }
+
+
+    @Test
+    public void newAppStart_PrintSplash() throws Exception {
+
+        presenter.activityCreated(null);
+        presenter.activityResumed();
+        Mockito.verify(view).showSplashScreen();
+        presenter.splashFinished();
+        Mockito.verify(view).showHome();
+
+    }
+
+    @Test
+    public void appInBackground_PrintSplash() throws Exception {
+        presenter.activityPaused();
+        presenter.activityResumed();
+        Mockito.verify(view).showSplashScreen();
+        presenter.splashFinished();
+        Mockito.verify(view).showHome();
+
+    }
+
+    @Test
+    public void deviceRotates_PrintSplash() throws Exception {
+
+        presenter.activityPaused();
+        presenter.activityCreated(new Bundle());
+        presenter.activityResumed();
+        Mockito.verify(view, never()).showSplashScreen();
+        Mockito.verify(view).showHome();
 
     }
 }
