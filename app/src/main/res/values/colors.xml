@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <!--<color name="colorPrimary">#26dde3</color>-->
+    <!--<color name="colorPrimaryDark">#00abb1</color>-->
+    <!--<color name="colorPrimaryLight">#73ffff</color>-->
+
+
+    <color name="colorPrimary">#26dde3</color>
+    <color name="colorPrimaryDark">#00ffffff</color>
+    <color name="colorPrimaryLight">#73ffff</color>
+    <color name="textColorPrimary">#000000</color>
+
+    <color name="colorAccent">#ff4e1d</color>
     <color name="splashScreenColor">#0000ff</color>
     <color name="white">#ffffff</color>
+
+    <color name="white_transparent">#00ffffff</color>
 </resources>
