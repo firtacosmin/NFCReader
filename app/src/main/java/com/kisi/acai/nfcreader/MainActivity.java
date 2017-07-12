@@ -34,6 +34,9 @@ import com.kisi.acai.nfcreader.di.activity.ActivityComponent;
 import com.kisi.acai.nfcreader.di.activity.DaggerActivityComponent;
 import com.kisi.acai.nfcreader.di.activity.modules.ComViewModule;
 import com.kisi.acai.nfcreader.di.activity.modules.ContextModule;
+import com.kisi.acai.nfcreader.util.GifImageView;
+
+import org.w3c.dom.Text;
 
 import java.io.UnsupportedEncodingException;
 
@@ -44,7 +47,7 @@ import butterknife.ButterKnife;
 
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, ComView {
+        implements NavigationView.OnNavigationItemSelectedListener, ComView, GifImageView.AnimationEndListener {
 
 
     private static final int STOP_SPLASH = 1;
@@ -61,6 +64,10 @@ public class MainActivity extends AppCompatActivity
     ConstraintLayout mainLayout;
     @BindView(R.id.mainText)
     TextView mainText;
+    @BindView(R.id.unlock_gif)
+    GifImageView gifImageView;
+    TextView username;
+    TextView email;
 
 
     private Handler delayHandler;
@@ -98,7 +105,10 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        View header=navigationView.getHeaderView(0);
 
+        username = (TextView)header.findViewById(R.id.username);
+        email = (TextView)header.findViewById(R.id.email);
 
         delayHandler = new Handler(){
             @Override
@@ -182,70 +192,11 @@ public class MainActivity extends AppCompatActivity
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         presenter.processViewIntent(intent);
-        if (intent != null && NfcAdapter.ACTION_NDEF_DISCOVERED.equals(intent.getAction())) {
-            Parcelable[] rawMessages =
-                    intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
-            if (rawMessages != null) {
-                NdefMessage[] messages = new NdefMessage[rawMessages.length];
-                for (int i = 0; i < rawMessages.length; i++) {
-                    messages[i] = (NdefMessage) rawMessages[i];
-                }
-                // Process the messages array.
-            }
-
-
-            Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-            Ndef ndef = Ndef.get(tag);
-            if (ndef == null) {
-                // NDEF is not supported by this Tag.
-                return ;
-            }
-
-            NdefMessage ndefMessage = ndef.getCachedNdefMessage();
-
-            NdefRecord[] records = ndefMessage.getRecords();
-            for (NdefRecord ndefRecord : records) {
-//                if (ndefRecord.getTnf() == NdefRecord.TNF_WELL_KNOWN && Arrays.equals(ndefRecord.getType(), NdefRecord.RTD_TEXT)) {
-                    try {
-//                        text.setText(readText(ndefRecord));
-                        Toast.makeText(this, readText(ndefRecord), Toast.LENGTH_LONG).show();
-                    } catch (UnsupportedEncodingException e) {
-                        Log.e(TAG, "Unsupported Encoding", e);
-                    }
-//                }
-            }
-        }
-    }
-
-    private String readText(NdefRecord record) throws UnsupportedEncodingException {
-        /*
-         * See NFC forum specification for "Text Record Type Definition" at 3.2.1
-         *
-         * http://www.nfc-forum.org/specs/
-         *
-         * bit_7 defines encoding
-         * bit_6 reserved for future use, must be 0
-         * bit_5..0 length of IANA language code
-         */
-
-        byte[] payload = record.getPayload();
-
-        // Get the Text Encoding
-        String textEncoding = ((payload[0] & 128) == 0) ? "UTF-8" : "UTF-16";
-
-        // Get the Language Code
-        int languageCodeLength = payload[0] & 0063;
-
-        // String languageCode = new String(payload, 1, languageCodeLength, "US-ASCII");
-        // e.g. "en"
-
-        // Get the Text
-        Log.d(TAG,"::other option: "+new String(payload, 0, payload.length  - 1, textEncoding));
-        return new String(payload, 0, payload.length - 1, textEncoding);
     }
 
     @Override
     public void showSplashScreen() {
+        Log.d(TAG,"::showSplashScreen");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mainLayout.setBackgroundColor(getResources().getColor(R.color.splashScreenColor, getTheme()));
         }else{
@@ -257,21 +208,45 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void showHome() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mainLayout.setBackgroundColor(getResources().getColor(R.color.white, getTheme()));
-        }else{
-            mainLayout.setBackgroundColor(getResources().getColor(R.color.white));
-        }
+        Log.d(TAG,"::showHome");
+        hideSplash();
         mainText.setVisibility(View.VISIBLE);
+        binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+
     }
 
     @Override
     public void showUser(ComModel.User user) {
+        Log.d(TAG,"::showUser");
+        hideSplash();
+        binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNDEFINED);
+        username.setText(user.getUsername());
+        email.setText(user.getEmail());
+
 
     }
 
     @Override
     public void showUnlockAnimation() {
+        hideSplash();
+        Log.d(TAG,"::showUnlockAnimation");
+        gifImageView.setAnimationEndListener(this);
+        gifImageView.setStopAtEnd(true);
+        gifImageView.setGifImageResource(R.drawable.gif);
+    }
 
+    @Override
+    public void animationEnded() {
+        Log.d(TAG,"::animationEnded");
+        /*when the animation has ended then hide the gif and show the user data*/
+//        gifImageView.setVisibility(View.GONE);
+    }
+
+    private void hideSplash(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            mainLayout.setBackgroundColor(getResources().getColor(R.color.white, getTheme()));
+        }else{
+            mainLayout.setBackgroundColor(getResources().getColor(R.color.white));
+        }
     }
 }
