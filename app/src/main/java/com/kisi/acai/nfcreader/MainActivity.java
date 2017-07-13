@@ -3,16 +3,8 @@ package com.kisi.acai.nfcreader;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.graphics.Color;
-import android.nfc.NdefMessage;
-import android.nfc.NdefRecord;
-import android.nfc.NfcAdapter;
-import android.nfc.Tag;
-import android.nfc.tech.Ndef;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
-import android.os.Parcelable;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -26,9 +18,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.kisi.acai.nfcreader.communication.model.ComEndpointInterface;
 import com.kisi.acai.nfcreader.communication.model.ComModel;
 import com.kisi.acai.nfcreader.communication.presenter.ComPresenter;
 import com.kisi.acai.nfcreader.communication.view.ComView;
@@ -38,20 +28,12 @@ import com.kisi.acai.nfcreader.di.activity.ActivityComponent;
 import com.kisi.acai.nfcreader.di.activity.DaggerActivityComponent;
 import com.kisi.acai.nfcreader.di.activity.modules.ComViewModule;
 import com.kisi.acai.nfcreader.di.activity.modules.ContextModule;
-import com.kisi.acai.nfcreader.di.application.ApplicationScope;
 import com.kisi.acai.nfcreader.util.GifImageView;
-
-import org.w3c.dom.Text;
-
-import java.io.UnsupportedEncodingException;
 
 import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
-import okhttp3.logging.HttpLoggingInterceptor;
-import retrofit2.Retrofit;
 
 
 public class MainActivity extends AppCompatActivity
@@ -59,7 +41,7 @@ public class MainActivity extends AppCompatActivity
 
 
     private static final int STOP_SPLASH = 1;
-    public static final long SPLASH_DELAY = 1000;
+    public static final long SPLASH_DELAY = 60*1000;
 
 
     private static final String TAG = "MainActivity";
@@ -79,10 +61,6 @@ public class MainActivity extends AppCompatActivity
 
 
     private TimingHandler delayHandler;
-
-//    @Inject
-//    @ApplicationScope
-//    HttpLoggingInterceptor comEndpointInterface;
 
 
     @Override
