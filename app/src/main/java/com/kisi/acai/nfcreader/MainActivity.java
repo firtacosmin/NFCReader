@@ -3,6 +3,7 @@ package com.kisi.acai.nfcreader;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.graphics.Color;
+import android.nfc.NfcAdapter;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
@@ -49,6 +50,8 @@ public class MainActivity extends AppCompatActivity
     private ActivityComponent component;
     @Inject
     public ComPresenter presenter;
+    @Inject
+    public NfcAdapter nfcAdapter;
 
     @BindView(R.id.mainLayout)
     ConstraintLayout mainLayout;
@@ -113,6 +116,8 @@ public class MainActivity extends AppCompatActivity
         super.onResume();
 
         presenter.activityResumed();
+        nfcAdapter.enableReaderMode(this, presenter, NfcAdapter.FLAG_READER_NFC_A | NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
+                null);
 
     }
 
@@ -120,6 +125,7 @@ public class MainActivity extends AppCompatActivity
         super.onPause();
 
         presenter.activityPaused();
+        nfcAdapter.disableReaderMode(this);
     }
 
     public void onSaveInstanceState(Bundle state){
@@ -181,6 +187,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void showSplashScreen() {
+
         Log.d(TAG,"::showSplashScreen");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mainLayout.setBackgroundColor(getResources().getColor(R.color.splashScreenColor, getTheme()));
@@ -193,39 +200,55 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void showHome() {
-        Log.d(TAG,"::showHome");
-        hideSplash();
-        hideGif();
-        mainText.setVisibility(View.VISIBLE);
-        binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        if ( Thread.currentThread().getId() == 1 ) {
+            Log.d(TAG, "::showHome");
+            hideSplash();
+            hideGif();
+            mainText.setVisibility(View.VISIBLE);
+            binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        }else{
+            runOnUiThread(this::showHome);
+        }
 
     }
 
     @Override
     public void showUser(ComModel.User user) {
-        Log.d(TAG,"::showUser");
-        hideSplash();
-        binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNDEFINED);
-        username.setText(user.getUsername());
-        email.setText(user.getEmail());
+        if ( Thread.currentThread().getId() == 1 ) {
+            Log.d(TAG, "::showUser");
+            hideSplash();
+            binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNDEFINED);
+            username.setText(user.getUsername());
+            email.setText(user.getEmail());
+        }else{
+            runOnUiThread(() -> showUser(user));
+        }
 
 
     }
 
     @Override
     public void showUnlockAnimation() {
-        hideSplash();
-        Log.d(TAG,"::showUnlockAnimation");
-        gifImageView.setVisibility(View.VISIBLE);
-        mainText.setVisibility(View.INVISIBLE);
-        gifImageView.setAnimationEndListener(this);
-        gifImageView.setStopAtEnd(true);
-        gifImageView.setGifImageResource(R.drawable.gif);
+        if ( Thread.currentThread().getId() == 1 ) {
+            hideSplash();
+            Log.d(TAG, "::showUnlockAnimation");
+            gifImageView.setVisibility(View.VISIBLE);
+            mainText.setVisibility(View.INVISIBLE);
+            gifImageView.setAnimationEndListener(this);
+            gifImageView.setStopAtEnd(true);
+            gifImageView.setGifImageResource(R.drawable.gif);
+        }else{
+            runOnUiThread(this::showUnlockAnimation);
+        }
     }
 
     @Override
     public void showNothingMessage() {
-        Snackbar.make(mainLayout, "Nothing received", Snackbar.LENGTH_SHORT).show();
+        if ( Thread.currentThread().getId() == 1 ) {
+            Snackbar.make(mainLayout, "Nothing received", Snackbar.LENGTH_SHORT).show();
+        }else{
+            runOnUiThread(this::showNothingMessage);
+        }
     }
 
     @Override
@@ -236,16 +259,24 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void hideSplash(){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mainLayout.setBackgroundColor(getResources().getColor(R.color.white, getTheme()));
+        if ( Thread.currentThread().getId() == 1 ) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                mainLayout.setBackgroundColor(getResources().getColor(R.color.white, getTheme()));
+            } else {
+                mainLayout.setBackgroundColor(getResources().getColor(R.color.white));
+            }
         }else{
-            mainLayout.setBackgroundColor(getResources().getColor(R.color.white));
+            runOnUiThread(this::hideSplash);
         }
     }
 
 
     private void hideGif() {
-        gifImageView.setVisibility(View.INVISIBLE);
+        if ( Thread.currentThread().getId() == 1 ) {
+            gifImageView.setVisibility(View.INVISIBLE);
+        }else{
+            runOnUiThread(this::hideGif);
+        }
     }
     /**
      * methid called by {@link com.kisi.acai.nfcreader.communication.view.TimingHandler} when the time ends

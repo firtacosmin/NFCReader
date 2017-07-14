@@ -1,19 +1,18 @@
 package com.kisi.acai.nfcreader.communication.presenter;
 
+import android.content.Context;
 import android.content.Intent;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
+import android.nfc.tech.IsoDep;
 import android.nfc.tech.Ndef;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
-import android.os.Parcelable;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.kisi.acai.nfcreader.communication.model.ComEndpointInterface;
+import com.kisi.acai.nfcreader.MainActivity;
+import com.kisi.acai.nfcreader.communication.card.CardComTransceiver;
 import com.kisi.acai.nfcreader.communication.model.ComModel;
 import com.kisi.acai.nfcreader.communication.view.ComView;
 import com.kisi.acai.nfcreader.di.activity.ActivityScope;
@@ -29,12 +28,13 @@ import javax.inject.Inject;
  * will be taken and what will be displayed in the view depending on the information in the nfc payload
  */
 
-public class ComPresenter {
+@ActivityScope
+public class ComPresenter implements NfcAdapter.ReaderCallback, CardComTransceiver.OnMessageReceived {
 
     private static final String TAG = "ComPresenter";
+    private Context context;
     private final ComModel model;
     private final ComView view;
-    private ComEndpointInterface endPoint;
 
     /**
      * the payload to search for
@@ -58,14 +58,15 @@ public class ComPresenter {
     @Inject
     public ComPresenter(@ApplicationScope ComModel model, @ActivityScope final ComView view){
 
-
         this.model = model;
         this.view = view;
-        this.endPoint = endPoint;
     }
 
     public void activityResumed(){
         Log.d(TAG,"::activityResumed");
+
+
+
         if ( willShowSplash ){
             Log.d(TAG,"::activityResumed will show splas");
             view.showSplashScreen();
@@ -113,17 +114,6 @@ public class ComPresenter {
 
     public void processViewIntent(Intent intent){
         if (intent != null && NfcAdapter.ACTION_NDEF_DISCOVERED.equals(intent.getAction())) {
-//            Parcelable[] rawMessages =
-//                    intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
-//            if (rawMessages != null) {
-//                NdefMessage[] messages = new NdefMessage[rawMessages.length];
-//                for (int i = 0; i < rawMessages.length; i++) {
-//                    messages[i] = (NdefMessage) rawMessages[i];
-//                }
-//                // Process the messages array.
-//            }
-
-
             Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
             Ndef ndef = Ndef.get(tag);
             if (ndef == null) {
@@ -135,7 +125,6 @@ public class ComPresenter {
 
             NdefRecord[] records = ndefMessage.getRecords();
             for (NdefRecord ndefRecord : records) {
-//                if (ndefRecord.getTnf() == NdefRecord.TNF_WELL_KNOWN && Arrays.equals(ndefRecord.getType(), NdefRecord.RTD_TEXT)) {
                 try {
                     updateViewForPayload(readText(ndefRecord));
                 } catch (UnsupportedEncodingException e) {
@@ -147,26 +136,10 @@ public class ComPresenter {
     }
 
     private String readText(NdefRecord record) throws UnsupportedEncodingException {
-        /*
-         * See NFC forum specification for "Text Record Type Definition" at 3.2.1
-         *
-         * http://www.nfc-forum.org/specs/
-         *
-         * bit_7 defines encoding
-         * bit_6 reserved for future use, must be 0
-         * bit_5..0 length of IANA language code
-         */
-
         byte[] payload = record.getPayload();
 
         // Get the Text Encoding
         String textEncoding = ((payload[0] & 128) == 0) ? "UTF-8" : "UTF-16";
-
-        // Get the Language Code
-        int languageCodeLength = payload[0] & 0063;
-
-        // String languageCode = new String(payload, 1, languageCodeLength, "US-ASCII");
-        // e.g. "en"
 
         // Get the Text
         Log.d(TAG,"::other option: "+new String(payload, 0, payload.length  - 1, textEncoding));
@@ -180,14 +153,11 @@ public class ComPresenter {
      */
     private void updateViewForPayload(String payload){
 
-        if ( !isUnlocked() && payload.contains(UNLOCK_MSJ) ){
-            view.showUnlockAnimation();
-            view.showUser(model.getUser());
-            setUnlocked();
+        if ( payload.contains(UNLOCK_MSJ) ){
+            onUnlock();
         }else{
-            view.showNothingMessage();
+            onNothing();
         }
-        model.announceUnlockToServer();
 
 
     }
@@ -208,5 +178,32 @@ public class ComPresenter {
         view.showHome();
         resetUnlocked();
 
+    }
+
+    @Override
+    public void onTagDiscovered(Tag tag) {
+        IsoDep isoDep = IsoDep.get(tag);
+        CardComTransceiver transceiver = new CardComTransceiver(isoDep, this);
+        transceiver.start();
+    }
+
+    @Override
+    public void onUnlock() {
+        if ( !isUnlocked()  ) {
+            view.showUnlockAnimation();
+            view.showUser(model.getUser());
+            setUnlocked();
+        }
+        model.announceUnlockToServer();
+    }
+
+    @Override
+    public void onError(Exception exception) {
+
+    }
+
+    @Override
+    public void onNothing() {
+        view.showNothingMessage();
     }
 }
